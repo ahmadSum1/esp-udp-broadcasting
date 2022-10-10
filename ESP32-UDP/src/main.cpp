@@ -1,9 +1,15 @@
 #include <Arduino.h>
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#include <ESPAsyncUDP.h>
+#endif
+#ifdef ESP32
 #include <WiFi.h>
 #include <AsyncUDP.h>
+#endif
 
-const char * ssid = "SSID";
-const char * pass = "PASSWORD";
+const char *ssid = "SSID";
+const char *pass = "PASSWORD";
 
 // I am using 4 Sliders the 5th one is not used
 const int NUM_SLIDERS = 5;
@@ -16,38 +22,46 @@ AsyncUDP udp;
 
 void setup()
 {
-    // Set all slider pins to INPUT
-    for (int i = 0; i < NUM_SLIDERS; i++) {
-      pinMode(analogInputs[i], INPUT);
+  // Set all slider pins to INPUT
+  for (int i = 0; i < NUM_SLIDERS; i++)
+  {
+    pinMode(analogInputs[i], INPUT);
+  }
+  // Get WiFi going
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, pass);
+  if (WiFi.waitForConnectResult() != WL_CONNECTED)
+  {
+    Serial.println("WiFi Failed");
+    while (1)
+    {
+      delay(1000);
     }
-    // Get WiFi going
-    Serial.begin(115200);
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, pass);
-    if (WiFi.waitForConnectResult() != WL_CONNECTED) {
-        Serial.println("WiFi Failed");
-        while(1) {
-            delay(1000);
-        }
-    }
+  }
 }
 
 // Get slider pin values
-void updateSliderValues() {
-  for (int i = 0; i < NUM_SLIDERS; i++) {
-     analogSliderValues[i] = analogRead(analogInputs[i]);
+void updateSliderValues()
+{
+  for (int i = 0; i < NUM_SLIDERS; i++)
+  {
+    analogSliderValues[i] = analogRead(analogInputs[i]);
   }
 }
 
 // TODO only send values if there is significant change in values to limit network traffick
 // UDP Broadcast slider values
-void sendSliderValues() {
+void sendSliderValues()
+{
   String builtString = String("");
 
-  for (int i = 0; i < NUM_SLIDERS; i++) {
+  for (int i = 0; i < NUM_SLIDERS; i++)
+  {
     builtString += String((int)analogSliderValues[i]);
     // Build the string to broadcast by seperating values using | except for last value
-    if (i < NUM_SLIDERS - 1) {
+    if (i < NUM_SLIDERS - 1)
+    {
       builtString += String("|");
     }
   }
@@ -57,7 +71,7 @@ void sendSliderValues() {
 
 void loop()
 {
-    updateSliderValues();
-    sendSliderValues(); // Send data
-    delay(100);
+  updateSliderValues();
+  sendSliderValues(); // Send data
+  delay(100);
 }
