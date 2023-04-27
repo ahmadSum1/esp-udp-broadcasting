@@ -12,7 +12,7 @@ client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)  #
 client.setblocking(1)
 
 # Bind to all interfaces and to port 2255
-client.bind(('', 2255))
+client.bind(('', 4040))
 
 def check_data():
     try:
